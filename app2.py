@@ -1,39 +1,33 @@
+
+
+
 import streamlit as st
-import joblib
-import numpy as np
 import pandas as pd
+import joblib  # To load saved scaler and model
 
-#  Load the trained model, scaler, and encoders
-model = joblib.load("linear_regression.pkl")
-scaler = joblib.load("scaler.pkl")
-label_encoders = joblib.load("label_encoders.pkl")  # If categorical encoding was used
+# Load the saved scaler and model
+scaler = joblib.load('scaler.pkl')  # Ensure this file exists
+model = joblib.load('model.pkl')
 
-# Streamlit UI
 st.title("IBD Prediction App (Linear Regression)")
-
-#  User Inputs
 st.write("Enter patient details to predict IBD outcome:")
 
-# Dynamic input fields based on dataset
-feature_inputs = {}
-for col in ["Feature1", "Feature2"]:  # Replace with actual feature names
-    feature_inputs[col] = st.number_input(f"Enter {col}", min_value=0, max_value=100, value=50)
+# User input
+feature1 = st.number_input("Enter Feature1", min_value=0.0)
+feature2 = st.number_input("Enter Feature2", min_value=0.0)
 
-# Make Prediction
 if st.button("Predict"):
-    # Convert user input to a DataFrame
-    input_df = pd.DataFrame([feature_inputs])
-
-    # Encode categorical features if necessary
-    for col, le in label_encoders.items():
-        if col in input_df:
-            input_df[col] = le.transform(input_df[col])
-
-    # Standardize input features
-    input_scaled = scaler.transform(input_df)
-
-    # Predict using the model
-    prediction = model.predict(input_scaled)
+    # Create input DataFrame with correct column names
+    input_df = pd.DataFrame([[feature1, feature2]], columns=['Feature1', 'Feature2'])
     
-    # Show result
-    st.write(f"Predicted IBD Type: {prediction[0]:.2f}")
+    # Ensure input matches training data format
+    try:
+        input_scaled = scaler.transform(input_df)
+    except ValueError as e:
+        st.error("Feature mismatch error! Please check input format.")
+        st.stop()
+
+    # Make prediction
+    prediction = model.predict(input_scaled)
+
+    st.success(f"Predicted IBD Outcome: {prediction[0]}")
