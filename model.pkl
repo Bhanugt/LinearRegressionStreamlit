@@ -1,0 +1,9 @@
+import os
+import joblib
+
+model_path = os.path.join(os.path.dirname(__file__), 'model.pkl')
+
+if os.path.exists(model_path):
+    model = joblib.load(model_path)
+else:
+    raise FileNotFoundError(f"Model file not found at: {model_path}")
